@@ -1,5 +1,5 @@
 {
-  "name": "employee-tracker",
+  "name": "employee-manager",
   "version": "1.0.0",
   "description": "a solution for managing a company's employees",
   "main": "server.js",

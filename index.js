@@ -110,6 +110,9 @@ const Action = {
 }
 Object.freeze(Action);
 
+const currencyFormat = (num) => {
+    return '$' + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}
 
 const createInquiry = () => {
     return inquirer.prompt([{
@@ -433,7 +436,7 @@ const readRolesByDepartment = async () => {
         choices: departments
     }]);
     let result = await connection.query(
-        `select r.Id, r.title as Role, r.Salary, d.name as Department
+        `select r.Id, r.title as Role, concat('$',format(r.salary,2)) as Salary, d.name as Department
         from role r
         left join department d
         on r.department_id = d.id
@@ -580,7 +583,7 @@ const updateEmployee = async (isManager) => {
 const updateDepartment = async () => {
     await readDepartments();
     let departments = await connection.query(
-        `select d.name, d.id as value from department`
+        `select d.name, d.id as value from department d`
     );
     if (departments.length === 0) {
         console.log(chalk.red("No Departments. Add a Department"));
@@ -646,7 +649,7 @@ const updateRole = async () => {
             message: "Salary $:",
             validate: val => /^\$?([\d,]+(?:\.\d{2})?)$/.test(val) || "Enter a valid salary",
             filter: val => parseFloat(val.match(/[\d\.]+/g).join('')),
-            default: role.salary.toString()
+            default: currencyFormat(role.salary)
         }
     ]);
     let result = await connection.query(

@@ -242,11 +242,16 @@ const createEmployee = async (isManager) => {
             where id <> ?`,
             [insertId]
         );
+        if (employees.length < 1) {
+            console.log(chalk.red("There are no employees to manage."))
+            return;
+        }
         let ans = await inquirer.prompt([{
             name: "manage",
             type: "checkbox",
             message: "Whom should they manage?",
             choices: employees,
+            validate: answer => answer.length >= 1 || "You must select at least one employee to manage."
         }]);
         // console.log(ans);
         await connection.query(
@@ -338,7 +343,7 @@ const readEmployeesByManager = async () => {
         choices: managers
     }]);
     var result = await connection.query(
-        `select e.id, e.first_name, e.last_name, r.title, d.name as department, concat(m.first_name, ' ', m.last_name) as manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -351,9 +356,7 @@ const readEmployeesByManager = async () => {
 
 const readEmployeesByDepartment = async () => {
     var departments = await connection.query(
-        `select distinct e.manager_id as value, concat(m.first_name, ' ', m.last_name) as name 
-        from employee e
-        inner join employee m on m.id = e.manager_id`
+        `select name, id as value from department`
     );
     if (departments.length === 0) {
         console.log("No Departments. Add a Department");
@@ -362,16 +365,16 @@ const readEmployeesByDepartment = async () => {
     var answers = await inquirer.prompt([{
         name: "department_id",
         type: "list",
-        message: "Choose a Manager",
+        message: "Choose a Department:",
         choices: departments
     }]);
     var result = await connection.query(
-        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.Title, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
         left join department d on d.id = r.department_id
-        where e.department_id = ?`,
+        where d.id = ?`,
         [answers.department_id]
     );
     console.table(result);
@@ -412,7 +415,7 @@ const readDepartments = async () => {
 
 const readRoles = async () => {
     let result = await connection.query(
-        `select r.Id, r.title as Role, r.Salary, d.name as Department from roles r
+        `select r.Id, r.title as Role, r.Salary, d.name as Department from role r
         left join department d
         on r.department_id = d.id`
     );
@@ -453,14 +456,27 @@ const readManagers = async () => {
 };
 
 const updateEmployee = async (isManager) => {
-    await readAllEmployees();
+    if (isManager) {
+        await readManagers();
+    } else {
+        await readAllEmployees();
+    }
     let roles = await connection.query(
         `select title as name, id as value from role`
     );
-    let employees = await connection.query(
-        `select id as value, concat(first_name, ' ', last_name) as name
-        from employee`
-    );
+    let employees;
+    if (isManager) {
+        employees = await connection.query(
+            `select distinct e.manager_id as value, concat(m.first_name, ' ', m.last_name) as name
+            from employee e
+            inner join employee m on m.id = e.manager_id`
+        )
+    } else {
+        employees = await connection.query(
+            `select id as value, concat(first_name, ' ', last_name) as name
+            from employee`
+        );
+    }
     if (employees.length === 0) {
         console.log(chalk.red("No Employees. Add an employee."));
         return;
@@ -476,7 +492,7 @@ const updateEmployee = async (isManager) => {
     let answer = await inquirer.prompt([{
         name: "employee_id",
         type: "list",
-        message: "Pick an Employee:",
+        message: "Pick a" + isManager ? " manager:" : "n employee:",
         choices: employees
     }]);
     let employee = await connection.query(
@@ -489,7 +505,7 @@ const updateEmployee = async (isManager) => {
         [answer.employee_id]
     )
     employee = employee[0];
-    console.log(employee);
+    // console.log(employee);
 
     let answers = await inquirer.prompt([{
             name: "first_name",
@@ -526,7 +542,7 @@ const updateEmployee = async (isManager) => {
             }
         }
     ]);
-
+    console.log(answers);
     await connection.query(
         `update employee set ? where id = ${answer.employee_id}`,
         answers
@@ -534,8 +550,8 @@ const updateEmployee = async (isManager) => {
     if (isManager) {
         employees = await connection.query(
             `select CONCAT(first_name, ' ', last_name) as name, id as value from employee
-            where id <> ?`,
-            [answer.employee_id]
+            where id <> ? and id <> ?`,
+            [answer.employee_id, answers.manager_id]
         );
         let ans = await inquirer.prompt([{
             name: "manage",
@@ -545,8 +561,13 @@ const updateEmployee = async (isManager) => {
         }]);
         // console.log(ans);
         await connection.query(
-            `UPDATE employee set manager_id = ${insertId} where id in (${ans.manage.join(",")})`
-        )
+            `UPDATE employee set manager_id = ${answer.employee_id} where id in (${ans.manage.join(",")})`
+        );
+        await connection.query(
+            `UPDATE employee set manager_id = null
+            where manager_id = ${answer.employee_id}
+            and id not in (${ans.manage.join(",")})`
+        );
         await readManagers();
         console.log(chalk.green("Manager updated"))
     } else {

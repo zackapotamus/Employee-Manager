@@ -545,7 +545,7 @@ const updateEmployee = async (isManager) => {
             }
         }
     ]);
-    console.log(answers);
+    // console.log(answers);
     await connection.query(
         `update employee set ? where id = ${answer.employee_id}`,
         answers
@@ -561,6 +561,7 @@ const updateEmployee = async (isManager) => {
             type: "checkbox",
             message: "Whom should they manage?",
             choices: employees,
+            validate: answer => answer.length >= 1 || "You must select at least one employee to manage."
         }]);
         // console.log(ans);
         await connection.query(

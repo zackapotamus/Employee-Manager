@@ -195,6 +195,10 @@ const createEmployee = async (isManager) => {
     let roles = await connection.query(
         `select title as name, id as value from role`
     );
+    if (roles.length === 0) {
+        console.log(chalk.red("You must create a Role first."));
+        return;
+    }
     roles.push({
         name: "None",
         value: null
@@ -289,7 +293,17 @@ const createRole = async () => {
     let departments = await connection.query(
         `SELECT name, id as value FROM department`
     );
+    if (departments.length === 0) {
+        console.log(chalk.red("You must create a Department first."))
+        return;
+    }
     let answers = await inquirer.prompt([{
+            name: "department_id",
+            type: "list",
+            message: "Choose a Department:",
+            choices: departments
+        },
+        {
             name: "title",
             type: "input",
             validate: fitsCharLength,
@@ -302,12 +316,6 @@ const createRole = async () => {
             validate: val => /^\$?([\d,]+(?:\.\d{2})?)$/.test(val) || "Enter a valid salary",
             filter: val => parseFloat(val.match(/[\d\.]+/g).join(''))
         },
-        {
-            name: "department_id",
-            type: "list",
-            message: "Choose a Department:",
-            choices: departments
-        }
     ]);
     await connection.query(
         `insert into role set ?`,
@@ -481,7 +489,7 @@ const updateEmployee = async (isManager) => {
         );
     }
     if (employees.length === 0) {
-        console.log(chalk.red("No Employees. Add an employee."));
+        console.log(chalk.red("No Employees/Managers. Add an Employee."));
         return;
     }
     let managers = await connection.query(
@@ -545,10 +553,11 @@ const updateEmployee = async (isManager) => {
     );
     if (isManager) {
         employees = await connection.query(
-            `select CONCAT(first_name, ' ', last_name) as name, id as value from employee
+            `select CONCAT(first_name, ' ', last_name) as name, id as value, if(manager_id = ? ,true, false) as checked from employee
             where id <> ? and id <> ?`,
-            [answer.employee_id, answers.manager_id]
+            [answer.employee_id, answer.employee_id, answers.manager_id || 0]
         );
+        console.log(employees);
         let ans = await inquirer.prompt([{
             name: "manage",
             type: "checkbox",

@@ -495,11 +495,11 @@ const updateEmployee = async (isManager) => {
     let answer = await inquirer.prompt([{
         name: "employee_id",
         type: "list",
-        message: "Pick a" + isManager ? " manager:" : "n employee:",
+        message: `Pick a${isManager ? " manager:" : "n employee:"}`,
         choices: employees
     }]);
     let employee = await connection.query(
-        `select e.first_name, e.last_name, e.Id, e.role_id, e.manager_id, concat(e.first_name, ' ', e.last_name) as Name, r.Title, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.first_name, e.last_name, e.Id, e.role_id, e.manager_id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -508,7 +508,6 @@ const updateEmployee = async (isManager) => {
         [answer.employee_id]
     )
     employee = employee[0];
-    // console.log(employee);
 
     let answers = await inquirer.prompt([{
             name: "first_name",
@@ -529,20 +528,14 @@ const updateEmployee = async (isManager) => {
             type: "list",
             message: "Choose role:",
             choices: roles,
-            default: {
-                name: employee.Role,
-                value: employee.role_id
-            }
+            default: roles.findIndex(x => x.value === employee.role_id)
         },
         {
             name: "manager_id",
             type: "list",
             message: "Choose a Manager:",
             choices: managers.filter(x => x.value !== employee.Id),
-            default: {
-                name: employee.Manager,
-                value: employee.manager_id
-            }
+            default: managers.filter(x => x.value !== employee.Id).findIndex(x => x.value === employee.manager_id)
         }
     ]);
     // console.log(answers);
@@ -563,7 +556,7 @@ const updateEmployee = async (isManager) => {
             choices: employees,
             validate: answer => answer.length >= 1 || "You must select at least one employee to manage."
         }]);
-        // console.log(ans);
+        console.log(ans);
         await connection.query(
             `UPDATE employee set manager_id = ${answer.employee_id} where id in (${ans.manage.join(",")})`
         );
@@ -772,13 +765,17 @@ async function main() {
                 action = await deleteInquiry()
                 break;
             case Action.QUIT:
-                console.log("Goodbye");
-                await quit();
+                console.log(chalk.cyan("Goodbye"));
+                quit();
+                break mainloop;
                 return;
                 break;
             default:
                 console.log(chalk.red("Invalid Action"));
                 quit();
+                break mainloop;
+                return;
+                break;
         }
         // console.log(action);
         switch (action.action) {

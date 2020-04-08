@@ -426,7 +426,7 @@ const readRolesByDepartment = async () => {
     let departments = await connection.query(
         `select d.id as value, d.name from department d`
     );
-    let answer = inquirer.prompt([{
+    let answer = await inquirer.prompt([{
         name: "department_id",
         type: "list",
         message: "Choose a Department:",
@@ -434,7 +434,7 @@ const readRolesByDepartment = async () => {
     }]);
     let result = await connection.query(
         `select r.Id, r.title as Role, r.Salary, d.name as Department
-        from roles r
+        from role r
         left join department d
         on r.department_id = d.id
         where r.department_id = ?`,

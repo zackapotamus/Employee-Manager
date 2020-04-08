@@ -17,6 +17,8 @@ This command line application allows you to create, read, update, and delete emp
 
 * [Tests](#tests)
 
+* [Links](#links)
+
 * [Questions](#questions)
 
 ## Installation
@@ -29,7 +31,7 @@ npm install
 
 ## Usage
 
-You will need to create a database using the schema provided.
+You will need to create a database using the schema provided. Once that is done, you will run `node index.js` to kick things off.
 
 ## License
 
@@ -46,6 +48,10 @@ To run tests, please run the following command:
 ```
 N/A
 ```
+
+## Links
+
+* [GitHub Repository](https://github.com/zackapotamus/Employee-Manager)
 
 ## Questions
 

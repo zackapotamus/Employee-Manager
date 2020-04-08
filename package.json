@@ -2,14 +2,14 @@
   "name": "employee-manager",
   "version": "1.0.0",
   "description": "a solution for managing a company's employees",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zackapotamus/Employee-Tracker.git"
+    "url": "git+https://github.com/zackapotamus/Employee-Manager.git"
   },
   "keywords": [
     "node",
@@ -19,9 +19,9 @@
   "author": "zack hayden",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/zackapotamus/Employee-Tracker/issues"
+    "url": "https://github.com/zackapotamus/Employee-Manager/issues"
   },
-  "homepage": "https://github.com/zackapotamus/Employee-Tracker#readme",
+  "homepage": "https://github.com/zackapotamus/Employee-Manager#readme",
   "dependencies": {
     "asciiart-logo": "^0.2.6",
     "chalk": "^4.0.0",

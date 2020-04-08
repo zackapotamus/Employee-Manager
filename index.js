@@ -316,7 +316,7 @@ const createRole = async () => {
 
 const readAllEmployees = async () => {
     var result = await connection.query(
-        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat('$',format(r.salary, 2)) as Salary, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -343,7 +343,7 @@ const readEmployeesByManager = async () => {
         choices: managers
     }]);
     var result = await connection.query(
-        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat('$',format(r.salary, 2)) as Salary, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -369,7 +369,7 @@ const readEmployeesByDepartment = async () => {
         choices: departments
     }]);
     var result = await connection.query(
-        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.title as Role, d.name as Department, concat('$',format(r.salary, 2)) as Salary, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -395,7 +395,7 @@ const readEmployeesByRole = async () => {
         choices: roles
     }]);
     var result = await connection.query(
-        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.Title, d.name as Department, concat(m.first_name, ' ', m.last_name) as Manager
+        `select e.Id, concat(e.first_name, ' ', e.last_name) as Name, r.Title, d.name as Department, concat('$',format(r.salary, 2)) as Salary, concat(m.first_name, ' ', m.last_name) as Manager
         from employee e
         left join employee m on e.manager_id = m.id
         left join role r on e.role_id = r.id
@@ -415,7 +415,7 @@ const readDepartments = async () => {
 
 const readRoles = async () => {
     let result = await connection.query(
-        `select r.Id, r.title as Role, r.Salary, d.name as Department from role r
+        `select r.Id, r.title as Role, concat('$',format(r.Salary,2)) as Salary, d.name as Department from role r
         left join department d
         on r.department_id = d.id`
     );
@@ -445,7 +445,7 @@ const readRolesByDepartment = async () => {
 
 const readManagers = async () => {
     let result = await connection.query(
-        `select distinct e.manager_id as Id, concat(m.first_name, ' ', m.last_name) as Name, r.title as Role, d.name as Department, concat(m2.first_name, ' ', m2.last_name) as Manager
+        `select distinct e.manager_id as Id, concat(m.first_name, ' ', m.last_name) as Name, r.title as Role, d.name as Department, concat('$',format(r.salary, 2)) as Salary, concat(m2.first_name, ' ', m2.last_name) as Manager
         from employee e
         inner join employee m on m.id = e.manager_id
         left join role r on r.id = m.role_id
@@ -645,7 +645,8 @@ const updateRole = async () => {
             type: "input",
             message: "Salary $:",
             validate: val => /^\$?([\d,]+(?:\.\d{2})?)$/.test(val) || "Enter a valid salary",
-            filter: val => parseFloat(val.match(/[\d\.]+/g).join(''))
+            filter: val => parseFloat(val.match(/[\d\.]+/g).join('')),
+            default: role.salary.toString()
         }
     ]);
     let result = await connection.query(

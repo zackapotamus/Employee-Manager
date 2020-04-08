@@ -23,6 +23,10 @@
   },
   "homepage": "https://github.com/zackapotamus/Employee-Tracker#readme",
   "dependencies": {
+    "asciiart-logo": "^0.2.6",
+    "chalk": "^4.0.0",
+    "console.table": "^0.10.0",
+    "dotenv": "^8.2.0",
     "inquirer": "^7.1.0",
     "mysql": "^2.18.1"
   }

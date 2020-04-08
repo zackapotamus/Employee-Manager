@@ -557,7 +557,6 @@ const updateEmployee = async (isManager) => {
             where id <> ? and id <> ?`,
             [answer.employee_id, answer.employee_id, answers.manager_id || 0]
         );
-        console.log(employees);
         let ans = await inquirer.prompt([{
             name: "manage",
             type: "checkbox",

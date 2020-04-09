@@ -622,6 +622,9 @@ const updateRole = async () => {
     let roles = await connection.query(
         `select id as value, title as name from role`
     );
+    let departments = await connection.query(
+        `select id as value, name from department`
+    );
     if (roles.length === 0) {
         console.log(chalk.red("No Roles. Add a Role."));
         return;
@@ -638,7 +641,14 @@ const updateRole = async () => {
         [answer.id]
     )
     role = role[0]
-    let answers = await inquirer.prompt([{
+    let answers = await inquirer.prompt([
+        {
+            name: "department_id",
+            type: "list",
+            message: "Choose a Department for this Role:",
+            choices: departments
+        },
+        {
             name: "title",
             type: "input",
             validate: fitsCharLength,
@@ -654,7 +664,7 @@ const updateRole = async () => {
             default: currencyFormat(role.salary)
         }
     ]);
-    let result = await connection.query(
+    await connection.query(
         `update role set ? where id = ${role.id}`,
         answers
     )
